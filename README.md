@@ -1,4 +1,4 @@
-# 📜 Atlas da Terra-média – Enciclopédia Interativa de Arda
+# 📜 Atlas da Terra-média
 
 ## 🏰 Tema do Projeto e Justificativa
 
