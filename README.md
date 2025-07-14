@@ -1,70 +1,72 @@
-# A Guilda – RPG de Gerenciamento de Guilda
+# 📜 Atlas da Terra-média – Enciclopédia Interativa de Arda
 
-## 🎮 Tema do Projeto e Justificativa
+## 🏰 Tema do Projeto e Justificativa
 
-**A Guilda** é um simulador de gerenciamento de uma guilda de aventureiros. O jogador assume o papel de mestre da guilda, controlando recursos, recrutando heróis, enviando missões e expandindo sua influência.
+O **Atlas da Terra-média** será um sistema interativo que permite consultar, pesquisar e explorar as localidades, povos, linhagens, eventos históricos e culturas do universo de Arda, baseado nas obras de J.R.R. Tolkien (*O Silmarillion*, *O Hobbit*, *O Senhor dos Anéis* e outros).
 
-O projeto foi escolhido por permitir a aplicação prática e natural dos principais conceitos de Estruturas de Dados II. A ambientação gamificada torna o aprendizado mais lúdico, integrando algoritmos e estruturas em desafios reais dentro da simulação.
+Este tema foi escolhido por possibilitar a aplicação natural dos conceitos de **Estruturas de Dados II** em um contexto rico em relações, buscas e conexões. O sistema simulará a exploração da história da Terra-média como um verdadeiro navegador de lore, valorizando a consulta eficiente de informações.
 
 ---
 
 ## 🧩 Visão Geral das Funcionalidades
 
-1. **Cadastro e gestão de heróis**  
-   - Nome, classe, nível, atributos e inventário.
+1. **Enciclopédia de Locais da Terra-média**  
+   - Consulta de locais históricos com descrição, eventos associados e povos relacionados.
 
-2. **Sistema de busca (heróis, missões, itens)**  
-   - Busca por nome, classe ou nível, usando algoritmos diversos (linear, binária, hash).
+2. **Registro Genealógico (Linhagens)**  
+   - Representação das árvores genealógicas dos principais personagens.
 
-3. **Sistema de missões**  
-   - Requisitos de nível e classe, duração, recompensa e perigos.
+3. **Conexões entre Povos e Reinos**  
+   - Relações políticas, culturais e migratórias ao longo das Eras.
 
-4. **Gestão de inventário**  
-   - Sistema de mochila com limite de peso. Cada herói possui seu inventário.
+4. **Linha do Tempo de Eventos Históricos**  
+   - Sequência cronológica de guerras, fundações e eventos marcantes.
 
-5. **Simulação de combate e evolução**  
-   - Batalhas simples com rolagens, cálculo de dano e XP.
+5. **Sistema de Busca Avançada**  
+   - Pesquisa eficiente por nomes, raças, eras e categorias (busca textual e hash).
 
-6. **Relatório de desempenho da guilda**  
-   - Histórico de missões, XP ganho, mortes, sucessos e falhas.
+6. **Relatórios Estatísticos da Lore**  
+   - Dados analíticos sobre populações, eventos e relevância histórica.
 
-7. **Sistema de salvamento com compressão de dados (RLE ou Huffman)**  
-   - Otimização no salvamento do estado da guilda.
+7. **Sistema de Salvamento com Compressão de Dados**  
+   - Compressão da base de dados utilizando Huffman ou RLE.
 
-8. **Mapa com caminhos e obstáculos (grafo)**  
-   - Representação do mundo e cálculo de rotas com algoritmos como Dijkstra ou BFS.
+8. **Mapa Conceitual (Grafo de Conexões)**  
+   - Relações entre personagens, reinos e povos modeladas como um grafo.
 
 ---
 
 ## 📚 Integração da Ementa com o Projeto
 
-| Tópico da Ementa                          | Aplicação no Projeto A Guida |
-|------------------------------------------|-------------------------------|
-| **Teoria da Complexidade**               | Determinar viabilidade de missões baseado em combinações de heróis (problemas com restrições). |
-| **Busca Sequencial, Binária, Hashing**   | Sistema de busca de heróis, missões e itens. |
-| **Busca em Texto**                       | Filtragem de logs ou nomes em registros da guilda. |
-| **Compressão de Dados (RLE/Huffman)**    | Salvamento eficiente do estado da guilda. |
-| **Grafos (rotas, conexões, caminhos)**   | Representação do mundo, planejamento de rotas. |
-| **Algoritmos Gulosos**                   | Alocação rápida de recursos, escolha de heróis com melhores atributos para cada missão. |
+| Tópico da Ementa                       | Aplicação no Projeto Atlas da Terra-média                                  |
+|-----------------------------------------|----------------------------------------------------------------------------|
+| **Teoria da Complexidade**             | Consultas e análises de grandes árvores e grafos históricos.               |
+| **Busca Sequencial, Binária, Hashing** | Busca por localidades, personagens, eventos e raças.                      |
+| **Busca em Texto**                     | Filtros por palavras e frases dentro da lore.                              |
+| **Compressão de Dados (RLE/Huffman)**  | Salvamento comprimido da base de dados.                                    |
+| **Grafos (caminhos, conexões, redes)** | Representação de relações políticas e genealógicas.                        |
+| **Algoritmos Gulosos**                 | Sugestão de rotas de leitura otimizadas pela relevância histórica.         |
 
 ---
 
 ## 🛠️ Tecnologias Escolhidas
 
-- **Linguagem de Programação:** C++  
-- **Compilador:** g++ (GCC)  
-- **IDE:** Visual Studio Code 
+- **Linguagem de Programação:** Python 3.x  
+- **IDE:** PyCharm  
+- **Ambiente de Execução:** PyCharm 
+- **Bibliotecas Possíveis:** `collections`, `heapq`, `networkx`, `pickle` ou `json`, `zlib`
 
 ---
 
 ## 📅 Próximas Etapas
 
-- Início da codificação da primeira funcionalidade: Cadastro de heróis
-- Definição de estruturas iniciais
-- Implementação de sistema de busca básica
-- Construção de grafo de mundo e missões
+- Definição de classes básicas (`Local`, `Evento`, `Personagem`, `Povo`).
+- Implementação inicial do sistema de busca textual.
+- Criação da estrutura de grafo com `networkx` (opcional).
+- Implementação do módulo de compressão e salvamento.
+- Protótipo básico no terminal.
 
 ---
 
-> Projeto criado como parte da disciplina **Estruturas de Dados II** – Universidade Federal de Uberlândia (UFU) – 2025  
+> Projeto desenvolvido como parte da disciplina **Estruturas de Dados II** – Universidade Federal de Uberlândia (UFU) – 2025  
 > Aluno: **Thomaz Otávio Soares Figueiredo**
