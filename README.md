@@ -52,8 +52,8 @@ Este tema foi escolhido por possibilitar a aplicação natural dos conceitos de 
 ## 🛠️ Tecnologias Escolhidas
 
 - **Linguagem de Programação:** Python 3.x  
-- **IDE:** PyCharm  
-- **Ambiente de Execução:** PyCharm 
+- **IDE:** VS Code
+- **Ambiente de Execução:** VS Code 
 - **Bibliotecas Possíveis:** `collections`, `heapq`, `networkx`, `pickle` ou `json`, `zlib`
 
 ---
