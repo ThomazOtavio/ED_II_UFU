@@ -4,6 +4,7 @@ import os
 import heapq
 import string
 from collections import Counter
+from collections import deque
 
 DIRETORIO_DADOS = "./dados/"
 DIRETORIO_CONTOS = "./contos/"
@@ -39,7 +40,7 @@ def busca_binaria(fragmentos_ordenados, alvo):
     while inicio <= fim:
         meio = (inicio + fim) // 2
         comparacoes += 1
-
+    
         if fragmentos_ordenados[meio] == alvo:
             return meio, comparacoes
         elif fragmentos_ordenados[meio] < alvo:
@@ -124,6 +125,8 @@ class Huffman:
     def __lt__(self, outro):
         return self.frequencia < outro.frequencia
 
+# --------------------- HUFFMAN ------------------------
+
 def arvore_huffman(texto):
     frequencias = Counter(texto)
     fila = [Huffman(char, freq) for char, freq in frequencias.items()]
@@ -174,7 +177,6 @@ def comprimir_conto(nome_arquivo):
 
     return raiz, texto_codificado, caminho_saida
 
-
 def descomprimir_conto(raiz, texto_codificado, caminho_arquivo_comprimido):
     resultado = []
     no = raiz
@@ -193,7 +195,6 @@ def descomprimir_conto(raiz, texto_codificado, caminho_arquivo_comprimido):
     if os.path.exists(caminho_arquivo_comprimido):
         os.remove(caminho_arquivo_comprimido)
         print(f"\nArquivo comprimido '{caminho_arquivo_comprimido}' deletado após descompressão.")
-
 
 def menu_huffman():
     arquivos_contos = [arq for arq in os.listdir(DIRETORIO_CONTOS) if arq.endswith('.txt')]
@@ -339,8 +340,391 @@ def menu_tabela_hash():
         else:
             print("Opção inválida. Tente novamente.")
 
+# --------------------- GRAFOS ------------------------
+
+class UnionFind:
+    def __init__(self, n):
+        self.pai = list(range(n)) 
+        self.rank = [0] * n 
+
+    def encontrar(self, u):
+        if self.pai[u] != u:
+            self.pai[u] = self.encontrar(self.pai[u]) 
+        return self.pai[u]
+
+    def unir(self, u, v):
+        raiz_u = self.encontrar(u)
+        raiz_v = self.encontrar(v)
+
+        if raiz_u != raiz_v:
+            if self.rank[raiz_u] > self.rank[raiz_v]:
+                self.pai[raiz_v] = raiz_u
+            elif self.rank[raiz_u] < self.rank[raiz_v]:
+                self.pai[raiz_u] = raiz_v
+            else:
+                self.pai[raiz_v] = raiz_u
+                self.rank[raiz_u] += 1
+
+def kruskal(grafo):
+    arestas = []
+    for cidade1, adjacentes in grafo.lista_adj.items():
+        for cidade2, peso in adjacentes:
+            arestas.append((peso, cidade1, cidade2))
+
+    arestas.sort()
+
+    uf = UnionFind(len(grafo.cidades))
+    
+    arvore_geradora = []
+    
+    for peso, cidade1, cidade2 in arestas:
+        u = grafo.cidades.index(cidade1)
+        v = grafo.cidades.index(cidade2)
+
+        if uf.encontrar(u) != uf.encontrar(v):
+            arvore_geradora.append((cidade1, cidade2, peso))
+            uf.unir(u, v)
+
+    return arvore_geradora
+
+def prim(grafo, cidade_inicial):
+    visitado = {cidade: False for cidade in grafo.cidades}
+    cidade_inicial_idx = grafo.cidades.index(cidade_inicial)
+    min_heap = [(0, cidade_inicial)]
+    arvore_geradora = []
+
+    while min_heap:
+        peso, cidade_atual = heapq.heappop(min_heap)
+        if visitado[cidade_atual]:
+            continue
+
+        visitado[cidade_atual] = True
+
+        for vizinho, peso in grafo.lista_adj[cidade_atual]:
+            if not visitado[vizinho]:
+                heapq.heappush(min_heap, (peso, vizinho))
+                arvore_geradora.append((cidade_atual, vizinho, peso))
+
+    return arvore_geradora
+
+class Grafo:
+    def __init__(self, cidades):
+        self.cidades = cidades
+        self.num_cidades = len(cidades)
+        
+        self.matriz_adj = [[0 for _ in range(self.num_cidades)] for _ in range(self.num_cidades)]
+        
+        self.lista_adj = {cidade: [] for cidade in cidades}
+        self.grau_entrada = {cidade: 0 for cidade in cidades} 
+
+    def adicionar_aresta(self, cidade1, cidade2, peso):
+        i = self.cidades.index(cidade1)
+        j = self.cidades.index(cidade2)
+        
+        self.matriz_adj[i][j] = peso
+        self.matriz_adj[j][i] = peso  
+
+        self.lista_adj[cidade1].append((cidade2, peso))
+        self.lista_adj[cidade2].append((cidade1, peso))  
+        
+        self.grau_entrada[cidade2] += 1
+
+    def remover_aresta(self, cidade1, cidade2):
+        i = self.cidades.index(cidade1)
+        j = self.cidades.index(cidade2)
+
+        self.matriz_adj[i][j] = 0
+        self.matriz_adj[j][i] = 0
+
+        self.lista_adj[cidade1] = [cidade for cidade, _ in self.lista_adj[cidade1] if cidade != cidade2]
+        self.lista_adj[cidade2] = [cidade for cidade, _ in self.lista_adj[cidade2] if cidade != cidade1]
+        
+        self.grau_entrada[cidade2] -= 1
+
+    def exibir_matriz(self):
+        print("Matriz de Adjacência:")
+        for linha in self.matriz_adj:
+            print(linha)
+
+    def exibir_lista(self):
+        print("Lista de Adjacência:")
+        for cidade, adjacentes in self.lista_adj.items():
+            print(f"{cidade}: {adjacentes}")
+
+    def ordenacao_topologica(self):
+        fila = deque([cidade for cidade in self.cidades if self.grau_entrada[cidade] == 0])
+        ordenacao = []
+        
+        while fila:
+            cidade_atual = fila.popleft()
+            ordenacao.append(cidade_atual)
+            
+            for vizinho, _ in self.lista_adj[cidade_atual]:
+                self.grau_entrada[vizinho] -= 1
+                if self.grau_entrada[vizinho] == 0:
+                    fila.append(vizinho)
+        
+        if len(ordenacao) == self.num_cidades:
+            print("\nOrdenação Topológica:")
+            print(" -> ".join(ordenacao))
+        else:
+            print("\nO grafo contém ciclos, logo não pode ser ordenado topologicamente.")
+
+    def colorir_grafo(self):
+        nomes_cores = ["Amarelo", "Vermelho", "Azul", "Verde", "Roxo", "Laranja", "Cinza", "Preto"]
+    
+        cidades_ordenadas = sorted(self.cidades, key=lambda cidade: len(self.lista_adj[cidade]), reverse=True)
+    
+        cores = {cidade: None for cidade in self.cidades}
+
+        for cidade in cidades_ordenadas:
+            vizinhos = [vizinhos for vizinhos, _ in self.lista_adj[cidade]]
+            cores_usadas = {cores[vizinhos] for vizinhos in vizinhos if cores[vizinhos] is not None}
+        
+            cor = 0
+            while cor < len(nomes_cores) and nomes_cores[cor] in cores_usadas:
+                cor += 1
+        
+            if cor >= len(nomes_cores):
+                print("Aviso: Número insuficiente de cores disponíveis para colorir o grafo.")
+            
+            cores[cidade] = nomes_cores[cor]
+    
+        print("\nColoração do grafo (Cidades e suas cores):")
+        for cidade, cor in cores.items():
+            print(f"{cidade}: {cor}")
+
+    def dfs(self, cidade_inicial, visitado=None):
+        if visitado is None:
+            visitado = set()
+        visitado.add(cidade_inicial)
+        for vizinho, _ in self.lista_adj[cidade_inicial]:
+            if vizinho not in visitado:
+                self.dfs(vizinho, visitado)
+        return visitado
+
+    def bfs(self, cidade_inicial):
+        visitado = set()
+        fila = deque([cidade_inicial])
+        distancias = {cidade_inicial: 0}
+        while fila:
+            cidade_atual = fila.popleft()
+            for vizinho, _ in self.lista_adj[cidade_atual]:
+                if vizinho not in visitado:
+                    visitado.add(vizinho)
+                    distancias[vizinho] = distancias[cidade_atual] + 1
+                    fila.append(vizinho)
+        return distancias
+
+    def dijkstra(self, cidade_inicial):
+        distancias = {cidade: float('inf') for cidade in self.cidades}
+        distancias[cidade_inicial] = 0
+        caminho = {cidade: None for cidade in self.cidades}
+        pq = [(0, cidade_inicial)]
+
+        while pq:
+            (dist, cidade_atual) = heapq.heappop(pq)
+            
+            for vizinho, peso in self.lista_adj[cidade_atual]:
+                distancia = dist + peso
+                if distancia < distancias[vizinho]:
+                    distancias[vizinho] = distancia
+                    caminho[vizinho] = cidade_atual
+                    heapq.heappush(pq, (distancia, vizinho))
+        return distancias, caminho
+
+def menu_mapas():
+    print("\n=== MENU DE MANIPULAÇÃO DE MAPA ===")
+    
+    cidades = [
+        "Amon Hen", "Anduin", "Angband", "Annuminas", "Barad-dûr", 
+        "Bree", "Caras Galadhon", "Gondolin", "Edoras", "Rivendell"
+    ]
+    
+    mapa = Grafo(cidades)
+
+    mapa.adicionar_aresta("Amon Hen", "Anduin", 5)
+    mapa.adicionar_aresta("Anduin", "Angband", 10)
+    mapa.adicionar_aresta("Angband", "Annuminas", 15)
+    mapa.adicionar_aresta("Barad-dûr", "Bree", 8)
+    mapa.adicionar_aresta("Bree", "Caras Galadhon", 12)
+    mapa.adicionar_aresta("Caras Galadhon", "Gondolin", 20)
+    mapa.adicionar_aresta("Gondolin", "Edoras", 30)
+    mapa.adicionar_aresta("Edoras", "Rivendell", 18)
+    mapa.adicionar_aresta("Amon Hen", "Gondolin", 25)
+    
+    print("\nMapa Inicial (Matriz de Adjacência):")
+    mapa.exibir_matriz()
+    
+    print("\nMapa Inicial (Lista de Adjacência):")
+    mapa.exibir_lista()
+
+    while True:
+        print("\n1. Adicionar Cidade")
+        print("2. Remover Cidade")
+        print("3. Adicionar Estrada (Rota)")
+        print("4. Remover Estrada (Rota)")
+        print("5. Exibir Mapa (Matriz de Adjacência)")
+        print("6. Exibir Mapa (Lista de Adjacência)")
+        print("7. Voltar ao Menu Principal")
+
+        sub_escolha = input("Escolha uma opção: ")
+
+        if sub_escolha == '1':
+            cidade = input("Digite o nome da cidade a ser adicionada: ")
+            if cidade not in mapa.cidades:
+                mapa.cidades.append(cidade)
+                mapa.lista_adj[cidade] = []
+                print(f"Cidade '{cidade}' adicionada com sucesso!")
+            else:
+                print("Cidade já existe no mapa.")
+
+        elif sub_escolha == '2':
+            cidade = input("Digite o nome da cidade a ser removida: ")
+            if cidade in mapa.cidades:
+                mapa.cidades.remove(cidade)
+                del mapa.lista_adj[cidade]
+                for adjacentes in mapa.lista_adj.values():
+                    if cidade in adjacentes:
+                        adjacentes.remove(cidade)
+                print(f"Cidade '{cidade}' removida com sucesso!")
+            else:
+                print("Cidade não encontrada.")
+
+        elif sub_escolha == '3':
+            cidade1 = input("Digite o nome da cidade 1: ")
+            cidade2 = input("Digite o nome da cidade 2: ")
+            peso = int(input(f"Digite o peso (distância) entre {cidade1} e {cidade2}: "))
+            if cidade1 in mapa.cidades and cidade2 in mapa.cidades:
+                mapa.adicionar_aresta(cidade1, cidade2, peso)
+                print(f"Estrada entre '{cidade1}' e '{cidade2}' com distância {peso} adicionada com sucesso!")
+            else:
+                print("Uma ou ambas as cidades não foram encontradas no mapa.")
+
+        elif sub_escolha == '4':
+            cidade1 = input("Digite o nome da cidade 1: ")
+            cidade2 = input("Digite o nome da cidade 2: ")
+            if cidade1 in mapa.cidades and cidade2 in mapa.cidades:
+                mapa.remover_aresta(cidade1, cidade2)
+                print(f"Estrada entre '{cidade1}' e '{cidade2}' removida com sucesso!")
+            else:
+                print("Uma ou ambas as cidades não foram encontradas no mapa.")
+
+        elif sub_escolha == '5':
+            mapa.exibir_matriz()
+
+        elif sub_escolha == '6':
+            mapa.exibir_lista()
+
+        elif sub_escolha == '7':
+            return mapa
+
+        else:
+            print("Opção inválida. Tente novamente.")
+
+# --------------------- NAVEGAÇÃO ------------------------
+
+def exibir_caminho(caminho, cidade_inicial, cidade_destino):
+    caminho_percorrido = []
+    cidade = cidade_destino
+    while cidade != cidade_inicial:
+        caminho_percorrido.append(cidade)
+        cidade = caminho[cidade]
+    caminho_percorrido.append(cidade_inicial)
+    caminho_percorrido.reverse()
+    return caminho_percorrido
+
+def menu_navegacao():
+    cidades = [
+        "Amon Hen", "Anduin", "Angband", "Annuminas", "Barad-dûr", 
+        "Bree", "Caras Galadhon", "Gondolin", "Edoras", "Rivendell"
+    ]
+    mapa = Grafo(cidades)
+
+    mapa.adicionar_aresta("Amon Hen", "Anduin", 5)
+    mapa.adicionar_aresta("Anduin", "Angband", 10)
+    mapa.adicionar_aresta("Angband", "Annuminas", 15)
+    mapa.adicionar_aresta("Barad-dûr", "Bree", 8)
+    mapa.adicionar_aresta("Bree", "Caras Galadhon", 12)
+    mapa.adicionar_aresta("Caras Galadhon", "Gondolin", 20)
+    mapa.adicionar_aresta("Gondolin", "Edoras", 30)
+    mapa.adicionar_aresta("Edoras", "Rivendell", 18)
+    mapa.adicionar_aresta("Amon Hen", "Gondolin", 25)
+
+    while True:
+        print("\n=== MENU DE NAVEGAÇÃO E CAMINHOS ÓTIMOS ===")
+        print("1. Pesquisa de Profundidade (DFS)")
+        print("2. Pesquisa em Largura (BFS)")
+        print("3. Caminho de Menor Custo (Dijkstra)")
+        print("4. Colorir Grafo (Welch-Powell)")
+        print("5. Ordenação Topológica (Kahn)")
+        print("6. Árvore Geradora Mínima (Kruskal)")
+        print("7. Árvore Geradora Mínima (Prim)")
+        print("8. Voltar ao Menu Principal")
+
+        escolha = input("Escolha uma opção: ")
+
+        if escolha == '1':
+            cidade_inicial = input("Digite a cidade inicial: ")
+            if cidade_inicial not in mapa.cidades:
+                print(f"Cidade '{cidade_inicial}' não encontrada no mapa.")
+                continue
+            visitado = mapa.dfs(cidade_inicial)
+            print(f"Cidades visitadas (DFS): {', '.join(visitado)}")
+
+        elif escolha == '2':
+            cidade_inicial = input("Digite a cidade inicial: ")
+            if cidade_inicial not in mapa.cidades:
+                print(f"Cidade '{cidade_inicial}' não encontrada no mapa.")
+                continue
+            distancias = mapa.bfs(cidade_inicial)
+            print(f"Distâncias a partir de {cidade_inicial} (BFS):")
+            for cidade, distancia in distancias.items():
+                print(f"{cidade}: {distancia} saltos")
+
+        elif escolha == '3':
+            cidade_inicial = input("Digite a cidade inicial: ")
+            if cidade_inicial not in mapa.cidades:
+                print(f"Cidade '{cidade_inicial}' não encontrada no mapa.")
+                continue
+            distancias, caminho = mapa.dijkstra(cidade_inicial)
+            print(f"Distâncias mínimas a partir de {cidade_inicial} (Dijkstra): {distancias}")
+            cidade_destino = input("Digite a cidade de destino para visualizar o caminho: ")
+            if cidade_destino not in mapa.cidades:
+                print(f"Cidade '{cidade_destino}' não encontrada no mapa.")
+                continue
+            caminho_percorrido = exibir_caminho(caminho, cidade_inicial, cidade_destino)
+            print(f"Caminho percorrido (Dijkstra): {' -> '.join(caminho_percorrido)}")
+
+        elif escolha == '4':
+            mapa.colorir_grafo()
+
+        elif escolha == '5':
+            mapa.ordenacao_topologica()
+
+        elif escolha == '6':
+            arvore_geradora_kruskal = kruskal(mapa)
+            print("\nÁrvore Geradora Mínima (Kruskal):")
+            for cidade1, cidade2, peso in arvore_geradora_kruskal:
+                print(f"{cidade1} - {cidade2} : {peso}")
+
+        elif escolha == '7':
+            cidade_inicial = input("Digite a cidade inicial para Prim: ")
+            arvore_geradora_prim = prim(mapa, cidade_inicial)
+            print("\nÁrvore Geradora Mínima (Prim):")
+            for cidade1, cidade2, peso in arvore_geradora_prim:
+                print(f"{cidade1} - {cidade2} : {peso}")
+
+        elif escolha == '8':
+            break
+
+        else:
+            print("Opção inválida. Tente novamente.")
+
+# --------------------- MENU PRINCIPAL ------------------------
 
 def menu():
+    mapa = None
     while True:
         print("\n=== ATLAS DA TERRA-MÉDIA ===")
         print("1. Busca Sequencial (Locais Desordenados)")
@@ -348,7 +732,9 @@ def menu():
         print("3. Busca em Texto (Rabin-Karp nos Contos)")
         print("4. Compressão e Descompressão Huffman")
         print("5. Cofre de Fragmentos (Tabela Hash)")
-        print("6. Sair")
+        print("6. Manipulação do Mapa (Cidades e Estradas)")
+        print("7. Navegação e Caminhos Ótimos") 
+        print("8. Sair")
 
         escolha = input("Escolha uma opção: ")
 
@@ -386,6 +772,12 @@ def menu():
             menu_tabela_hash()
 
         elif escolha == '6':
+            mapa = menu_mapas()
+
+        elif escolha == '7':
+            menu_navegacao()
+
+        elif escolha == '8':
             print("Encerrando o Atlas.")
             break
 
